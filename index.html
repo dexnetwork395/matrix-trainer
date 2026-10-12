@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажер по матрицам - Перестановка строк</title>
+    <script src="https://cdn.jsdelivr.net/npm/fraction.js@4.3.7/fraction.min.js"></script>
+    <script src="math.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        header {
+            background-color: #ffd700;
+            color: #121212;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            flex-wrap: wrap;
+        }
+        header select, header button {
+            background-color: #121212;
+            color: #ffd700;
+            border: none;
+            padding: 8px 10px;
+            font-weight: bold;
+            font-size: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #idealBtn {
+            background-color: #0056b3;
+            color: #fff;
+        }
+        .history-btn {
+            background-color: #333 !important;
+            color: #ffd700 !important;
+        }
+        .new-matrix-btn {
+            background-color: #28a745 !important;
+            color: #fff !important;
+        }
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+            gap: 20px;
+        }
+        
+        .operation-input-container {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            gap: 8px;
+        }
+        .operation-input {
+            flex: 1;
+            background: #1e1e1e;
+            border: 2px solid #444;
+            color: #00ffcc;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            outline: none;
+            text-align: center;
+        }
+        .operation-input:focus {
+            border-color: #00ffcc;
+        }
+        .apply-btn {
+            background-color: #0056b3;
+            color: #fff;
+            border: none;
+            padding: 0 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .apply-btn:active { background-color: #004080; }
+
+        .matrix-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background-color: #0056b3;
+            padding: 18px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 86, 179, 0.4);
+        }
+        .matrix-container {
+            display: grid;
+            gap: 8px;
+        }
+        .matrix-divider {
+            width: 4px;
+            height: 100%;
+            background-color: #ffd700;
+            border-radius: 2px;
+        }
+        
+        .matrix-cell {
+            background-color: #1e1e1e;
+            width: 70px;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 2px solid #004080;
+            color: #666666;
+            font-size: 18px;
+            font-weight: bold;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+        
+        .matrix-cell.non-zero {
+            color: #ffaa00;
+            border-color: #0056b3;
+            background-color: #221d12;
+        }
+
+        .matrix-cell:hover {
+            border-color: #ffd700;
+            background-color: #2a2a2a;
+            transform: scale(1.03);
+        }
+        .matrix-cell:active {
+            transform: scale(0.97);
+        }
+        .matrix-cell.ideal {
+            color: #00ffcc;
+            border-color: #008066;
+            background-color: #112222;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            width: 100%;
+            max-width: 480px;
+            justify-content: center;
+        }
+        .quick-actions button {
+            background: #2a2a2a;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 8px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .quick-actions button.swap-btn {
+            background: #856404;
+            border-color: #ffeeba;
+        }
+
+        .keypad {
+            display: none;
+        }
+
+        @media (max-width: 767px) {
+            main {
+                justify-content: space-between;
+                padding: 10px;
+                gap: 10px;
+            }
+            .matrix-cell {
+                width: 55px;
+            }
+            .matrix-wrapper {
+                padding: 10px;
+                gap: 10px;
+            }
+            .keypad {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+                width: 100%;
+                max-width: 350px;
+                background: #181818;
+                padding: 10px;
+                border-radius: 10px;
+                border: 1px solid #333;
+            }
+            .keypad button {
+                background-color: #2b2b2b;
+                color: #ffffff;
+                border: 1px solid #444;
+                padding: 12px 0;
+                font-size: 16px;
+                font-weight: bold;
+                border-radius: 6px;
+                cursor: pointer;
+            }
+            .keypad button.action-key { background-color: #0056b3; color: #fff; }
+            .keypad button.special-key { background-color: #d9534f; color: #fff; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <select id="modeSelect">
+            <option value="gauss">Ступенчатый</option>
+            <option value="inverse" selected>Обратная</option>
+        </select>
+        <select id="difficultySelect">
+            <option value="easy">Лёгкий</option>
+            <option value="medium" selected>Средний</option>
+            <option value="hard">Сложный</option>
+        </select>
+        <button class="new-matrix-btn" onclick="generateNewMatrix()">🔄 Новая</button>
+        <div style="display: flex; gap: 4px;">
+            <button class="history-btn" onclick="undoAction()">←</button>
+            <button class="history-btn" onclick="redoAction()">→</button>
+        </div>
+        <button id="idealBtn">Эталон</button>
+        <select id="sizeSelect">
+            <option value="3" selected>3×3</option>
+            <option value="4">4×4</option>
+        </select>
+    </header>
+
+    <main>
+        <div class="operation-input-container">
+            <input type="text" id="opInput" class="operation-input" placeholder="Введите действие (например, Str1 ↔ Str2)" autocomplete="off">
+            <button class="apply-btn" onclick="applyAction()">OK</button>
+        </div>
+
+        <div class="quick-actions" id="quickActions"></div>
+
+        <div class="matrix-wrapper">
+            <div class="matrix-container" id="matrixLeft"></div>
+            <div class="matrix-divider"></div>
+            <div class="matrix-container" id="matrixRight"></div>
+        </div>
+
+        <div class="keypad">
+            <button onclick="appendSymbol('1')">1</button>
+            <button onclick="appendSymbol('2')">2</button>
+            <button onclick="appendSymbol('3')">3</button>
+            <button onclick="appendSymbol(' * ')">*</button>
+
+            <button onclick="appendSymbol('4')">4</button>
+            <button onclick="appendSymbol('5')">5</button>
+            <button onclick="appendSymbol('6')">6</button>
+            <button onclick="appendSymbol(' / ')">/</button>
+
+            <button onclick="appendSymbol('7')">7</button>
+            <button onclick="appendSymbol('8')">8</button>
+            <button onclick="appendSymbol('9')">9</button>
+            <button onclick="clearOp()" class="special-key">C</button>
+
+            <button onclick="appendSymbol('0')">0</button>
+            <button onclick="backspace()" class="special-key">⌫</button>
+            <button onclick="applyAction()" class="action-key" style="grid-column: span 2;">OK</button>
+        </div>
+    </main>
+
+    <script>
+        let matrix = new MatrixEngine(3, 'medium');
+        let showingIdeal = false;
+
+        function initApp() {
+            showingIdeal = false;
+            let mode = document.getElementById('modeSelect').value;
+            let size = parseInt(document.getElementById('sizeSelect').value);
+            let difficulty = document.getElementById('difficultySelect').value;
+            matrix.resize(size, mode, difficulty);
+            renderMatrix();
+            renderQuickActions();
+        }
+
+        function generateNewMatrix() {
+            let mode = document.getElementById('modeSelect').value;
+            let size = parseInt(document.getElementById('sizeSelect').value);
+            let difficulty = document.getElementById('difficultySelect').value;
+            matrix.resize(size, mode, difficulty);
+            document.getElementById('opInput').value = "";
+            renderMatrix();
+        }
+
+        function renderQuickActions() {
+            const container = document.getElementById('quickActions');
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= matrix.size; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = `Str${i}`;
+                btn.onclick = () => appendSymbol(`Str${i}`);
+                container.appendChild(btn);
+            }
+
+            // Кнопка оператора замены строк ↔
+            const swapBtn = document.createElement('button');
+            swapBtn.textContent = '↔';
+            swapBtn.className = 'swap-btn';
+            swapBtn.title = 'Поменять строки местами';
+            swapBtn.onclick = () => appendSymbol(' ↔ ');
+            container.appendChild(swapBtn);
+
+            [' + ', ' - ', ' * ', ' / '].forEach(op => {
+                const btn = document.createElement('button');
+                btn.textContent = op.trim();
+                btn.onclick = () => appendSymbol(op);
+                container.appendChild(btn);
+            });
+        }
+
+        function formatFraction(frac) {
+            let s = frac.toFraction(true);
+            return s.replace(/\s+/g, '');
+        }
+
+        function renderMatrix() {
+            const leftGrid = document.getElementById('matrixLeft');
+            const rightGrid = document.getElementById('matrixRight');
+            
+            leftGrid.style.gridTemplateColumns = `repeat(${matrix.size}, 1fr)`;
+            rightGrid.style.gridTemplateColumns = `repeat(${matrix.size}, 1fr)`;
+            
+            leftGrid.innerHTML = '';
+            rightGrid.innerHTML = '';
+
+            let currentMode = document.getElementById('modeSelect').value;
+            let renderData = showingIdeal ? matrix.getIdealStandard(currentMode) : { left: matrix.leftData, right: matrix.rightData };
+
+            for (let i = 0; i < matrix.size; i++) {
+                for (let j = 0; j < matrix.size; j++) {
+                    let valL = renderData.left[i][j];
+                    const cellL = document.createElement('div');
+                    cellL.className = 'matrix-cell' + (showingIdeal ? ' ideal' : '') + (!valL.equals(0) ? ' non-zero' : '');
+                    cellL.textContent = formatFraction(valL);
+                    cellL.onclick = () => {
+                        document.getElementById('opInput').value += `Str${i+1}`;
+                        document.getElementById('opInput').focus();
+                    };
+                    leftGrid.appendChild(cellL);
+
+                    let valR = renderData.right[i][j];
+                    const cellR = document.createElement('div');
+                    cellR.className = 'matrix-cell' + (showingIdeal ? ' ideal' : '') + (!valR.equals(0) ? ' non-zero' : '');
+                    cellR.textContent = formatFraction(valR);
+                    rightGrid.appendChild(cellR);
+                }
+            }
+        }
+
+        const opInput = document.getElementById('opInput');
+
+        function appendSymbol(sym) {
+            opInput.value += sym;
+            opInput.focus();
+        }
+        function clearOp() {
+            opInput.value = "";
+            opInput.focus();
+        }
+        function backspace() {
+            opInput.value = opInput.value.slice(0, -1);
+            opInput.focus();
+        }
+
+        opInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                applyAction();
+            }
+        });
+
+        function undoAction() {
+            if (matrix.undo()) {
+                renderMatrix();
+            }
+        }
+
+        function redoAction() {
+            if (matrix.redo()) {
+                renderMatrix();
+            }
+        }
+
+        const idealBtn = document.getElementById('idealBtn');
+        idealBtn.addEventListener('mousedown', () => { showingIdeal = true; renderMatrix(); });
+        idealBtn.addEventListener('mouseup', () => { showingIdeal = false; renderMatrix(); });
+        idealBtn.addEventListener('touchstart', () => { showingIdeal = true; renderMatrix(); });
+        idealBtn.addEventListener('touchend', () => { showingIdeal = false; renderMatrix(); });
+
+        document.getElementById('sizeSelect').addEventListener('change', () => {
+            initApp();
+        });
+
+        document.getElementById('modeSelect').addEventListener('change', () => {
+            initApp();
+        });
+
+        document.getElementById('difficultySelect').addEventListener('change', () => {
+            initApp();
+        });
+
+        function applyAction() {
+            let expr = opInput.value.trim();
+            if (!expr) return;
+            
+            try {
+                matrix.executeExpression(expr);
+                renderMatrix();
+                opInput.value = "";
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
